@@ -14,10 +14,14 @@ app = FastAPI()
 BIGGER_DEEPSEEK = "DeepSeek-R1-Distill-Llama-8B-Q4_K_M"  # catches irrelevant information, omits key information
 SMALLER_DEEPSEEK = "DeepSeek-R1-Distill-Llama-8B-Q2_K"  # even incorrect sentences in polish
 MISTRAL = "mistral-7b.Q3_K_S"  # The best model on 4GB GPU, often accurate and short answer!
+SMALL_PHI4 = "phi-4-mini-q6_k_m"  # really fast, accurate answers
+LLAMA3 = "Meta-Llama-3-8B-Instruct-Q4_K_S"  # doesn't want to answer in polish, bad answer, slow
+
 
 # load model in LlamaCpp
 llm = LlamaCpp(
-    model_path=f"models/{MISTRAL}.gguf",  # path to a model in gguf format
+    model_path=f"models/{SMALL_PHI4}.gguf",  # path to a model in gguf format
+    # chat_format="phi",  # required for SMALLER_PHI4
     temperature=0.7,
     max_tokens=256,
     n_ctx=8192,  # size of context
@@ -55,7 +59,7 @@ embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-
 # any vector database
 vectorstore = FAISS.from_documents(docs, embeddings)
 
-# 5️⃣ Connect LLM with RAG
+# Connect LLM with RAG
 qa_chain = RetrievalQA.from_chain_type(llm, chain_type="stuff", retriever=vectorstore.as_retriever(),
                                        return_source_documents=True, chain_type_kwargs={
         "prompt": PROMPT
